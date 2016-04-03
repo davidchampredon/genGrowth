@@ -38,20 +38,19 @@ main.analysis <- function(filename,tstart,tend, CIwidth, n.MC=1000) {
 
 
 main.analysis.db <- function(dbname, disease, country,
-							 tstart, tend, 
+							 tstart,tend, 
 							 CIwidth, n.MC=1000) {
 	# Read data:
+	# dat.old <- read.inc(filename, tstart, tend, 
+	# 				doplot = TRUE, header=TRUE)
 	
 	dat.db <- get.epi.ts(dbname,
 						 synthetic = 0,
 						 country = country,
 						 disease = disease) 
-	# make sure it's incidence:
-	dat.db <- subset(dat.db, eventtype == 'incidence')
-	# reformat in simple data frame:	
-	dd <- dat.db$reportdate
-	dat <- data.frame(t = date.to.duration(dd),
-					  inc = dat.db$count)
+	
+	dat <- data.frame(date = dat.db$reportdate, 
+					  t = )
 	
 	# Fitting (no confidence intervals)
 	prm.init <- c(r=0.6, p=0.8)
@@ -64,17 +63,17 @@ main.analysis.db <- function(dbname, disease, country,
 						   CIwidth = CIwidth, 
 						   n.MC = 10, 
 						   prm.init = prm.init)
-	print(paste(dbname, disease, country,sep = '-'))
+	print(filename)
 	print(est.prm)
 	
-	# fit.evolution.CI(filename = filename, 
-	# 				 tstart = tstart, 
-	# 				 tend = tend,
-	# 				 prm.init = prm.init, 
-	# 				 CIwidth = CIwidth, 
-	# 				 n.MC = n.MC, 
-	# 				 tstep=1, 
-	# 				 min.length = 5)
+	fit.evolution.CI(filename = filename, 
+					 tstart = tstart, 
+					 tend = tend,
+					 prm.init = prm.init, 
+					 CIwidth = CIwidth, 
+					 n.MC = n.MC, 
+					 tstep=1, 
+					 min.length = 5)
 }
 
 
@@ -86,21 +85,18 @@ epilist
 disease <- c("ebola","MERS-CoV")
 country <- c("RDC","SOUTHKOREA")
 
-tstart <- c(1,8)
-tend <- tstart + c(70,12)
+tstart <- c(1,30,1)
+tend <- tstart + c(30,15,22)
 
-for(i in 1:length(disease)){
+for(i in 1:length(fname)){
 	pdf(paste0("plot_",i,".pdf"),width = 18, height = 10)
-	# main.analysis(filename = fname[i],
-	# 			  tstart = 	tstart[i],tend = tend[i], 
-	# 			  CIwidth=0.95, n.MC=1000)
+	main.analysis(filename = fname[i],
+				  tstart = 	tstart[i],tend = tend[i], 
+				  CIwidth=0.95, n.MC=1000)
 	
-	main.analysis.db(dbname = dbname,
-					 disease = disease[i],
-					 country = country[i],
-					 tstart = tstart[i],
-					 tend = tend[i], 
-					 CIwidth=0.95, n.MC=1000)
+	main.analysis.db(filename = fname[i],
+				  tstart = 	tstart[i],tend = tend[i], 
+				  CIwidth=0.95, n.MC=1000)
 	
 	dev.off()
 }
