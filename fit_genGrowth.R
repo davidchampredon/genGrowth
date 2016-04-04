@@ -37,7 +37,7 @@ fit.genGrowth.inc <- function(dat, prm.init, fit.type="LS") {
 }
 
 
-plot.data.fit <- function(dat,prm.fit) {
+plot.data.fit <- function(dat,prm.fit,epichoice=NULL) {
 	
 	ggm.fit <- genGrowth.inc(c0 = dat$inc[1], 
 							 r = prm.fit['r'], 
@@ -48,7 +48,7 @@ plot.data.fit <- function(dat,prm.fit) {
 	par(mfrow=c(1,2))
 	
 	plot(dat$t, dat$inc, pch=16,
-		 main = paste("Fitted GGM\n p =",round(prm.fit['p'],3),"  r =",round(prm.fit['r'],3)),
+		 main = paste(epichoice,"Fitted GGM\n p =",round(prm.fit['p'],3),"  r =",round(prm.fit['r'],3)),
 		 xlab = "time", ylab = "incidence")
 	lines(dat$t, dat$inc, typ="s")
 	lines(dat$t, ggm.fit,col="red")
@@ -61,4 +61,4 @@ plot.data.fit <- function(dat,prm.fit) {
 	lines(dat$t, ggm.fit,col="red")
 	grid()
 	par(old.par)
-} 
+}
