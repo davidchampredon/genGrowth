@@ -13,3 +13,15 @@ genGrowth.inc <- function(c0,r,p,tvec) {
 	a <- c0^(1/m)
 	return( r*(r/m*tvec + a)^(m-1) )
 }
+
+
+if(FALSE){
+tt <- 1:30
+c0 <- 1
+r <- 0.1
+p <- 0.7
+yy <- genGrowth.inc(c0,r,p,tt)
+yy2 <- genGrowth.inc(c0,r*1.9,p*1.0,tt)
+plot(tt,yy,typ='l',log='y')
+lines(tt,yy2,col='red')
+}
