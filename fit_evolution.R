@@ -1,6 +1,8 @@
 source("fit_genGrowth.R")
 
-fit.evolution <- function(filename, tstart, tend, prm.init, tstep=1, min.length = 5) {
+fit.evolution <- function(filename, tstart, tend, prm.init, 
+						  relative.err,
+						  tstep=1, min.length = 5) {
 	# Plots the values of fitted parameters
 	# as the number of data increases
 	

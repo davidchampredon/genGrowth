@@ -9,14 +9,15 @@ source("../Datsid/utils.R")
 t1 <- as.numeric(Sys.time())
 set.seed(12)
 
-main.analysis <- function(filename,tstart,tend, CIwidth, n.MC=1000) {
+main.analysis <- function(filename,tstart,tend, CIwidth,relative.err, n.MC) {
 	# Read data:
 	dat <- read.inc(filename, tstart, tend, 
 					doplot = TRUE, header=TRUE)
 	
 	# Fitting (no confidence intervals)
 	prm.init= c(r=0.6, p=0.8)
-	prm.fit <- fit.genGrowth.inc(dat,prm.init,fit.type = "LSconstraint")
+	prm.fit <- fit.genGrowth.inc(dat,prm.init,fit.type = "LSconstraint",
+								 relative.err)
 	plot.data.fit(dat,prm.fit)
 	
 	# Estimates (with confidence intervals)
@@ -38,18 +39,21 @@ main.analysis <- function(filename,tstart,tend, CIwidth, n.MC=1000) {
 }
 
 
-main.analysis.df <- function(dat,tstart,tend, CIwidth, n.MC=1000) {
+main.analysis.df <- function(dat,tstart,tend, CIwidth, relative.err, n.MC) {
 	
 	# Fitting (no confidence intervals)
 	prm.init= c(r=0.6, p=0.8)
-	prm.fit <- fit.genGrowth.inc(dat,prm.init,fit.type = "LSconstraint")
+	prm.fit <- fit.genGrowth.inc(dat,prm.init,
+								 fit.type = "LSconstraint",
+								 relative.err=relative.err)
 	plot.data.fit(dat,prm.fit)
 	
 	# Estimates (with confidence intervals)
 	est.prm <- estimate.CI(dat = dat, 
 						   CIwidth = CIwidth, 
-						   n.MC = 10, 
-						   prm.init = prm.init)
+						   n.MC = n.MC, 
+						   prm.init = prm.init,
+						   relative.err = relative.err)
 	return(est.prm)
 	
 	# fit.evolution.CI(filename = filename, 
@@ -89,8 +93,9 @@ get.db.data <- function(dbname, epichoice){
 
 
 main.analysis.db <- function(dbname, epichoice,
-							 tstart, tend, 
-							 CIwidth, n.MC=1000) {
+							 tstart, tend,
+							 relative.err,
+							 CIwidth, n.MC) {
 	# Read data:
 	dat <- get.db.data(dbname,epichoice)
 	dat <- subset(dat, t<=tend & tstart<=t)
@@ -98,14 +103,16 @@ main.analysis.db <- function(dbname, epichoice,
 	# Fitting (no confidence intervals)
 	prm.init <- c(r=0.6, p=0.8)
 	prm.fit <- fit.genGrowth.inc(dat, prm.init,
-								 fit.type = "LSconstraint")
+								 fit.type = "LSconstraint",
+								 relative.err = relative.err)
 	plot.data.fit(dat,prm.fit,epichoice)
 	
 	# Estimates (with confidence intervals)
 	est.prm <- estimate.CI(dat = dat, 
 						   CIwidth = CIwidth, 
-						   n.MC = 10, 
-						   prm.init = prm.init)
+						   n.MC = n.MC, 
+						   prm.init = prm.init,
+						   relative.err = relative.err)
 	
 	if(FALSE){
 		fit.evolution.CI(filename = filename,
@@ -155,7 +162,7 @@ plot.p.r.fit <- function(res,epilabel,title=""){
 }
 
 
-fit.ggm.recurrent.epi <- function(dbname, epichoice, w) {
+fit.ggm.recurrent.epi <- function(dbname, epichoice, w,relative.err, n.MC) {
 	### Fit 'p,r' on recurrent epidemic time series.
 	### Identify every growth phases and fit individualy
 	### on this 'slice'
@@ -172,8 +179,9 @@ fit.ggm.recurrent.epi <- function(dbname, epichoice, w) {
 		res.slice[[i]] <- main.analysis.df(dat = slice[[i]],
 										   tstart = 1 ,
 										   tend = length(slice[[i]]$inc), 
+										   relative.err = relative.err,
 										   CIwidth = 0.95, 
-										   n.MC = 1000)
+										   n.MC = n.MC)
 		res.slice[[i]] <- c(epi=epichoice,slice=i,res.slice[[i]])
 	}
 	dev.off()
@@ -210,26 +218,24 @@ epikey <- as.character(epis$key)
 tstart <- epis$start
 tend <- epis$end
 
-
-# aa <- get.epi.ts(db.path = dbname,country = 'LIBERIA',
-# 				 disease = 'ebola',synthetic = 0)
-# a <- subset(aa,eventtype=='incidence')
-# a$t <- date.to.duration(a$reportdate)
-# par(mfrow=c(1,1))
-# z <- subset(a,100<=t & t<=235)
-# plot(z$t, z$count,typ='o')
+relative.err <- FALSE
+n.MC <- 500
 
 res <- list()
 pdf(paste0("plot_singleEpi_details.pdf"), width = 18, height = 10)
+message("\nStarting one-time epidemics...")
 for(i in 1:length(epikey)){
 	res[[i]] <- main.analysis.db(dbname = dbname,
 								 epichoice = epikey[i],
 								 tstart = tstart[i],
 								 tend = tend[i], 
+								 relative.err = relative.err,
 								 CIwidth = 0.95, 
-								 n.MC = 1000)
+								 n.MC = n.MC)
 }
 dev.off()
+message("\n ... one-time epidemics done!\n\n")
+
 pdf(paste0("plot_singleEpi_final.pdf"), width = 18, height = 10)
 plot.p.r.fit(res,epikey)
 dev.off()
@@ -238,8 +244,15 @@ cityUK <- paste0("measles.UK.",
 				 c("Birmingham","Bristol","Liverpool","London",
 				   "Manchester","Newcastle","Sheffield"))
 
-res.recur.fr <- fit.ggm.recurrent.epi(dbname = dbname,epichoice = "influenza.FRANCE.",w = 15)
-res.recur.uk <- sapply(X = cityUK, FUN = fit.ggm.recurrent.epi, dbname=dbname, w=50)
+message("\nStarting recurrent epidemics...")
+res.recur.fr <- fit.ggm.recurrent.epi(dbname = dbname,epichoice = "influenza.FRANCE.",
+									  w = 15,
+									  relative.err = relative.err,n.MC = n.MC)
+res.recur.uk <- sapply(X = cityUK, FUN = fit.ggm.recurrent.epi, dbname=dbname, 
+					   w=50,
+					   relative.err = relative.err,n.MC = n.MC)
+
+message("\n ... recurrent epidemics done!\n\n")
 
 # Make a big dataframe with all results:
 for(i in 1:length(res)){

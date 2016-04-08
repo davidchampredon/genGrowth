@@ -1,6 +1,6 @@
 source("genGrowth.R")
 
-error.LS <- function(prm,dat,relative=FALSE) {
+error.LS <- function(prm,dat,relative) {
 	# Least-square error function.
 	tvec <- dat$t
 	r <- prm['r']
@@ -14,14 +14,15 @@ error.LS <- function(prm,dat,relative=FALSE) {
 }
 
 
-fit.genGrowth.inc <- function(dat, prm.init, fit.type="LS") {
+fit.genGrowth.inc <- function(dat, prm.init, fit.type="LS",relative.err) {
 	# Fit parameters 'r' and 'p' 
 	# for generalized growth model.
 	
 	if(fit.type=="LS"){
 		fit <- optim(par = prm.init,
 					 fn = error.LS, 
-					 dat = dat)
+					 dat = dat,
+					 relative = relative.err)
 		res <- fit$par
 	}
 	if(fit.type=="LSconstraint"){
@@ -29,7 +30,8 @@ fit.genGrowth.inc <- function(dat, prm.init, fit.type="LS") {
 					  objective = error.LS,
 					  lower = c(0,0), 
 					  upper = c(99,0.999999), 
-					  dat = dat)
+					  dat = dat,
+					  relative = relative.err)
 		res <- fit$par
 	}
 	

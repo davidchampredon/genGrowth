@@ -1,6 +1,6 @@
 source("fit_genGrowth.R")
 
-estimate.CI <- function(dat, CIwidth, n.MC, prm.init) {
+estimate.CI <- function(dat, CIwidth, n.MC, prm.init, relative.err) {
 
 	inc <- dat$inc
 	fit <- matrix(nrow = n.MC, ncol = 2)
@@ -11,7 +11,8 @@ estimate.CI <- function(dat, CIwidth, n.MC, prm.init) {
 		# fit this new synthetic epidemic:
 		fit[i,] <- fit.genGrowth.inc(dat = dat.sample,
 									 prm.init = prm.init,
-									 fit.type = "LSconstraint")
+									 fit.type = "LSconstraint",
+									 relative.err = relative.err)
 	}
 	a <- (1-CIwidth)/2
 	r.md <- quantile(fit[,1],probs = 0.50)
