@@ -14,7 +14,9 @@ error.LS <- function(prm,dat,relative) {
 }
 
 
-fit.genGrowth.inc <- function(dat, prm.init, fit.type="LS",relative.err) {
+fit.genGrowth.inc <- function(dat, prm.init, 
+							  fit.type="LS",
+							  relative.err = FALSE) {
 	# Fit parameters 'r' and 'p' 
 	# for generalized growth model.
 	

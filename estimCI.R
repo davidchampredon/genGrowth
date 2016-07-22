@@ -1,6 +1,8 @@
 source("fit_genGrowth.R")
 
-estimate.CI <- function(dat, CIwidth, n.MC, prm.init, relative.err) {
+estimate.CI <- function(dat, CIwidth, n.MC, 
+						prm.init, 
+						relative.err = FALSE) {
 
 	inc <- dat$inc
 	fit <- matrix(nrow = n.MC, ncol = 2)
