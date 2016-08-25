@@ -5,6 +5,7 @@ source('read-data.R')
 source("../Datsid/read_db.R")
 source("../Datsid/utils.R")
 
+save.to.file <- T
 
 get.db.data <- function(dbname, epichoice){
 	
@@ -81,23 +82,59 @@ for (i in 1:n) {
 	p.hi[i] <- res[[i]]$p.ci[2]
 }
 
-par(mfrow=c(1,2), cex.axis = 2, cex.lab = 2,las = 1)
+# ==== PLOTS ==== 
 
-# data 
+if(save.to.file) png("fit_evol.png",width = 2000,height = 900)
+
+par(mfrow=c(1,2), 
+	mar = c(5, 6, 4, 2) + 0.1,
+	cex.axis = 2, 
+	cex.lab = 4,
+	cex.main = 4,
+	las = 1)
+
+# ==== data  =====
 plot(dat$t, dat$inc, log='y', typ='s', 
 	 xlab = 'days',
-	 ylab = 'incidence',
-	 main = epichoice)
-points(dat.sub$t,dat.sub$inc, pch=16)
+	 ylab = '', #incidence',
+	 main = "Incidence",# epichoice
+	 lwd = 6
+	 )
+grid(equilogs = F)
+points(dat.sub$t,dat.sub$inc, pch=15,cex=2.5)
 
-# fit 
+mxinc = 1.15*max(dat.sub$inc)
+shiftdown = 0.70
+arrows(x0=dat.sub$t[1], x1=dat.sub$t[tmin],
+	   y0 = shiftdown*mxinc, y1=shiftdown* mxinc, length = 0.1, angle = 60,code = 3)
+arrows(x0=dat.sub$t[1], x1=dat.sub$t[length(dat.sub$t)],
+		 y0 = mxinc, y1=mxinc, length = 0.1, angle = 60,code = 3)
+
+text(x=0.5*(dat.sub$t[1]+dat.sub$t[tmin]), y=shiftdown*mxinc, 
+	 labels = "first fit", 
+	 cex = 1.7,pos = 1)
+
+text(x=0.5*(dat.sub$t[1]+dat.sub$t[length(dat.sub$t)]), y=mxinc, 
+	 labels = "last fit", 
+	 cex = 1.7,pos = 1)
+
+# ==== fit ====
+
+lwd.ci <- 0.7
+
 plot(x=r, y=p,
 	 typ='o',
-	 cex=1, pch=16, lty =2, 
-	 main = epichoice,
+	 cex=1.7, pch=1, lty =2, 
+	 main = "Parameters Fit", #epichoice,
 	 ylim = c(0,1),
 	 xlim = range(0,r.hi))
-arrows(x0=r, x1=r, y0=p.lo, y1=p.hi, col='darkgrey',code = 3,angle = 90, length = 0.05, lwd = 0.5)
-arrows(x0=r.lo, x1=r.hi, y0=p, y1=p, col='darkgrey',code = 3,angle = 90, length = 0.05, lwd = 0.5)
-text(x=r[1], y=p[1], labels = "start", cex = 2,pos = 3)
-text(x=r[n], y=p[n], labels = "end", cex = 2,pos = 3)
+arrows(x0=r, x1=r, y0=p.lo, y1=p.hi, col='darkgrey',code = 3,angle = 90, length = 0.05, lwd = lwd.ci)
+arrows(x0=r.lo, x1=r.hi, y0=p, y1=p, col='darkgrey',code = 3,angle = 90, length = 0.05, lwd = lwd.ci)
+text(x=r[1], y=p[1], labels = "first fit", cex = 2,pos = 4)
+text(x=r[n], y=p[n], labels = "last fit", cex = 2,pos = 4)
+
+# text(x=r, y=p, labels = c(1:length(r)), cex = 0.8,pos = 4)
+
+points(x=r, y=p, cex=1.2, pch=16)
+
+if(save.to.file) dev.off()
